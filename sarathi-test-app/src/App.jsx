@@ -24,16 +24,26 @@ export default function App() {
   const [answersLog, setAnswersLog] = useState([]);
   const [isEndModalOpen, setIsEndModalOpen] = useState(false);
 
-  // Settings
-  const [darkMode, setDarkMode] = useState(false);
+  // Settings: Default to clean light mode everywhere unless saved explicitly
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sarathi_theme');
+      if (saved) return saved === 'dark';
+      return false; // Default to white theme across all phones and desktops
+    }
+    return false;
+  });
+
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  // Sync dark mode class to html element
+  // Sync dark mode class to html element and save preference
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
+      try { localStorage.setItem('sarathi_theme', 'dark'); } catch (e) {}
     } else {
       document.documentElement.classList.remove('dark');
+      try { localStorage.setItem('sarathi_theme', 'light'); } catch (e) {}
     }
   }, [darkMode]);
 
@@ -99,11 +109,9 @@ export default function App() {
   const handleEndTestConfirm = () => {
     setIsEndModalOpen(false);
     if (activeView === 'practice') {
-      // In practice mode, simply return to practice menu
       setActiveView('practice-menu');
       return;
     }
-    // In mock exam, score remaining as unanswered
     const currentCompleted = answersLog.length;
     const remaining = activeQuestions.slice(currentCompleted).map(q => ({
       question: q,
@@ -144,7 +152,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen flex flex-col w-full max-w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
       <Navbar
         darkMode={darkMode}
         setDarkMode={setDarkMode}
@@ -156,7 +164,7 @@ export default function App() {
         onEndTestConfirm={handleEndTestConfirm}
       />
 
-      <main className="flex-1">
+      <main className="flex-1 w-full max-w-full overflow-x-hidden">
         {activeView === 'home' && (
           <HomeView
             candidateInfo={candidateInfo}

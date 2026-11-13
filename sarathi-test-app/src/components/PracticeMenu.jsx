@@ -27,10 +27,11 @@ export default function PracticeMenu({ allQuestions, onSelectTopic, onStartCusto
   const stats = calculateProgressStats(allQuestions);
   const { history } = getStudyProgress();
 
-  // Find next unattempted question
+  // Buckets for interactive filtering
   const nextUnattempted = allQuestions.find(q => !history[q.id] || history[q.id].attempts === 0);
-
-  // Filter mistakes
+  const unattemptedQuestions = allQuestions.filter(q => !history[q.id] || history[q.id].attempts === 0);
+  const masteredQuestions = allQuestions.filter(q => history[q.id] && history[q.id].status === 'mastered');
+  const learningQuestions = allQuestions.filter(q => history[q.id] && history[q.id].status === 'learning');
   const mistakeQuestions = allQuestions.filter(q => history[q.id] && history[q.id].status === 'mistake');
 
   // Topics configuration
@@ -89,31 +90,37 @@ export default function PracticeMenu({ allQuestions, onSelectTopic, onStartCusto
   const handleResume = () => {
     if (nextUnattempted) {
       const unattemptedIndex = allQuestions.findIndex(q => q.id === nextUnattempted.id);
-      onStartCustomList(allQuestions, unattemptedIndex);
+      onStartCustomList(allQuestions, unattemptedIndex, "പഠനം തുടരുക (Continue Learning)");
     } else {
-      onStartCustomList(allQuestions, 0);
+      onStartCustomList(allQuestions, 0, "സമ്പൂർണ്ണ ചോദ്യശേഖരം");
     }
   };
 
-  const handlePracticeMistakes = () => {
-    if (mistakeQuestions.length > 0) {
+  const handlePracticeBucket = (type) => {
+    if (type === 'mastered' && masteredQuestions.length > 0) {
+      onStartCustomList(masteredQuestions, 0, "നന്നായി പഠിച്ചവയുടെ റിവിഷൻ (Mastered Questions)");
+    } else if (type === 'learning' && learningQuestions.length > 0) {
+      onStartCustomList(learningQuestions, 0, "പഠിക്കുന്നവയുടെ പരിശീലനം (Learning Questions)");
+    } else if (type === 'mistakes' && mistakeQuestions.length > 0) {
       onStartCustomList(mistakeQuestions, 0, "തെറ്റിയ ചോദ്യങ്ങളുടെ റിവിഷൻ (Mistakes Revision)");
+    } else if (type === 'unattempted' && unattemptedQuestions.length > 0) {
+      onStartCustomList(unattemptedQuestions, 0, "ബാക്കിയുള്ള ചോദ്യങ്ങൾ (Unattempted Questions)");
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-8 animate-fadeIn" key={refreshKey}>
+    <div className="max-w-5xl mx-auto px-3.5 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8 animate-fadeIn overflow-x-hidden" key={refreshKey}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>സ്വയം പഠന മോഡ് • Study & Mastery Tracking</span>
+            <BookOpen className="w-3.5 h-3.5 shrink-0" />
+            <span>സ്വയം പഠന മോഡ് • STUDY & MASTERY TRACKING</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white break-words">
             പഠന പുരോഗതിയും വിഷയങ്ങളും
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
             ഓരോ ചോദ്യത്തിന്റെയും പുരോഗതി സേവ് ചെയ്ത് നിങ്ങളുടെ വേഗതയിൽ പരിശീലിക്കുക.
           </p>
         </div>
@@ -121,7 +128,7 @@ export default function PracticeMenu({ allQuestions, onSelectTopic, onStartCusto
         {stats.attempted > 0 && (
           <button
             onClick={handleReset}
-            className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-500 hover:text-rose-600 text-xs font-medium flex items-center gap-1.5 transition-colors"
+            className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-500 hover:text-rose-600 text-xs font-medium flex items-center gap-1.5 transition-colors shrink-0"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>റീസെറ്റ് (Reset Progress)</span>
@@ -130,45 +137,45 @@ export default function PracticeMenu({ allQuestions, onSelectTopic, onStartCusto
       </div>
 
       {/* Main Study Progress Overview Card */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-md space-y-6">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-md space-y-5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              ആകെ പഠന പുരോഗതി (Overall Study Progress)
+          <div className="min-w-0">
+            <div className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              ആകെ പഠന പുരോഗതി (OVERALL STUDY PROGRESS)
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+            <div className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 break-words">
               <span>{stats.attempted}</span>
-              <span className="text-slate-400 text-lg sm:text-xl font-bold"> / {stats.total} ചോദ്യങ്ങൾ</span>
-              <span className="ml-3 text-base sm:text-lg font-bold text-sky-600 dark:text-sky-400">
+              <span className="text-slate-400 text-base sm:text-xl font-bold"> / {stats.total} ചോദ്യങ്ങൾ</span>
+              <span className="ml-2 sm:ml-3 text-sm sm:text-lg font-bold text-sky-600 dark:text-sky-400">
                 ({stats.percentCompleted}%)
               </span>
             </div>
           </div>
 
           {/* Quick Action Buttons */}
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={handleResume}
               className="flex-1 sm:flex-none px-5 py-3 rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-sky-600/20 transition-all transform active:scale-95"
             >
-              <Play className="w-4 h-4 fill-current" />
+              <Play className="w-4 h-4 fill-current shrink-0" />
               <span>തുടരുക (Continue Learning)</span>
             </button>
 
             {mistakeQuestions.length > 0 && (
               <button
-                onClick={handlePracticeMistakes}
+                onClick={() => handlePracticeBucket('mistakes')}
                 className="flex-1 sm:flex-none px-4 py-3 rounded-2xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all"
               >
-                <AlertCircle className="w-4 h-4" />
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>തെറ്റിയവ ({mistakeQuestions.length})</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Global Progress Bar */}
-        <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden flex">
+        {/* Global Multi-Color Progress Bar */}
+        <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 sm:h-3 rounded-full overflow-hidden flex">
           <div 
             className="bg-emerald-500 h-full transition-all duration-500" 
             style={{ width: `${(stats.mastered / stats.total) * 100}%` }}
@@ -186,60 +193,88 @@ export default function PracticeMenu({ allQuestions, onSelectTopic, onStartCusto
           ></div>
         </div>
 
-        {/* Mastery Metric Badges Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {/* Mastered */}
-          <div className="p-3.5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60">
-            <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300 text-xs font-bold mb-1">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>നന്നായി പഠിച്ചവ</span>
+        {/* Interactive 4-Card Mastery Grid (Fully responsive on phone screens) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+          {/* Card 1: Mastered */}
+          <div 
+            onClick={() => handlePracticeBucket('mastered')}
+            className={`p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer min-w-0 overflow-hidden ${
+              masteredQuestions.length > 0 
+                ? 'bg-emerald-50/70 hover:bg-emerald-100/70 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 active:scale-95' 
+                : 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200/60 dark:border-emerald-900/40 opacity-80'
+            }`}
+            title="നന്നായി പഠിച്ചവ പരിശീലിക്കാൻ ക്ലിക്ക് ചെയ്യുക"
+          >
+            <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300 text-[11px] sm:text-xs font-bold mb-1 min-w-0">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">നന്നായി പഠിച്ചവ</span>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-emerald-800 dark:text-emerald-200">
+            <div className="text-xl sm:text-2xl font-black text-emerald-800 dark:text-emerald-200 my-0.5">
               {stats.mastered}
             </div>
-            <div className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80">
+            <div className="text-[10px] sm:text-[11px] text-emerald-600/80 dark:text-emerald-400/80 truncate">
               2+ തവണ ശരിയുത്തരം
             </div>
           </div>
 
-          {/* Learning */}
-          <div className="p-3.5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60">
-            <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 text-xs font-bold mb-1">
-              <Sparkles className="w-4 h-4" />
-              <span>പഠിച്ചുകൊണ്ടിരിക്കുന്നവ</span>
+          {/* Card 2: Learning (Fixed: text shortened to 'പഠിക്കുന്നവ' so it never spills outside) */}
+          <div 
+            onClick={() => handlePracticeBucket('learning')}
+            className={`p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer min-w-0 overflow-hidden ${
+              learningQuestions.length > 0 
+                ? 'bg-amber-50/70 hover:bg-amber-100/70 dark:bg-amber-950/40 dark:hover:bg-amber-950/60 border-amber-300 dark:border-amber-800 active:scale-95' 
+                : 'bg-amber-50/40 dark:bg-amber-950/20 border-amber-200/60 dark:border-amber-900/40 opacity-80'
+            }`}
+            title="പഠിക്കുന്നവ പരിശീലിക്കാൻ ക്ലിക്ക് ചെയ്യുക"
+          >
+            <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 text-[11px] sm:text-xs font-bold mb-1 min-w-0">
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">പഠിക്കുന്നവ</span>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-amber-800 dark:text-amber-200">
+            <div className="text-xl sm:text-2xl font-black text-amber-800 dark:text-amber-200 my-0.5">
               {stats.learning}
             </div>
-            <div className="text-[11px] text-amber-600/80 dark:text-amber-400/80">
+            <div className="text-[10px] sm:text-[11px] text-amber-600/80 dark:text-amber-400/80 truncate">
               1 തവണ ശരിയായവ
             </div>
           </div>
 
-          {/* Mistakes */}
-          <div className="p-3.5 rounded-2xl bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/60">
-            <div className="flex items-center gap-1.5 text-rose-700 dark:text-rose-300 text-xs font-bold mb-1">
-              <XCircle className="w-4 h-4" />
-              <span>തെറ്റിയവ (റിവിഷൻ)</span>
+          {/* Card 3: Mistakes */}
+          <div 
+            onClick={() => handlePracticeBucket('mistakes')}
+            className={`p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer min-w-0 overflow-hidden ${
+              mistakeQuestions.length > 0 
+                ? 'bg-rose-50/70 hover:bg-rose-100/70 dark:bg-rose-950/40 dark:hover:bg-rose-950/60 border-rose-300 dark:border-rose-800 active:scale-95' 
+                : 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-200/60 dark:border-rose-900/40 opacity-80'
+            }`}
+            title="തെറ്റിയവ റിവൈസ് ചെയ്യാൻ ക്ലിക്ക് ചെയ്യുക"
+          >
+            <div className="flex items-center gap-1.5 text-rose-700 dark:text-rose-300 text-[11px] sm:text-xs font-bold mb-1 min-w-0">
+              <XCircle className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">തെറ്റിയവ (റിവിഷൻ)</span>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-rose-800 dark:text-rose-200">
+            <div className="text-xl sm:text-2xl font-black text-rose-800 dark:text-rose-200 my-0.5">
               {stats.mistakes}
             </div>
-            <div className="text-[11px] text-rose-600/80 dark:text-rose-400/80">
-              വീണ്ടും പരിശീലിക്കേണ്ടവ
+            <div className="text-[10px] sm:text-[11px] text-rose-600/80 dark:text-rose-400/80 truncate">
+              വീണ്ടും പഠിക്കേണ്ടവ
             </div>
           </div>
 
-          {/* Unattempted */}
-          <div className="p-3.5 rounded-2xl bg-slate-100/70 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 text-xs font-bold mb-1">
-              <HelpCircle className="w-4 h-4" />
-              <span>ബാക്കിയുള്ളവ</span>
+          {/* Card 4: Unattempted */}
+          <div 
+            onClick={() => handlePracticeBucket('unattempted')}
+            className="p-3 sm:p-3.5 rounded-2xl bg-slate-100/80 hover:bg-slate-200/80 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer min-w-0 overflow-hidden active:scale-95"
+            title="തുടങ്ങാത്ത ചോദ്യങ്ങൾ ആരംഭിക്കാൻ ക്ലിക്ക് ചെയ്യുക"
+          >
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 text-[11px] sm:text-xs font-bold mb-1 min-w-0">
+              <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">ബാക്കിയുള്ളവ</span>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200">
+            <div className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 my-0.5">
               {stats.unattempted}
             </div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400">
+            <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 truncate">
               തുടങ്ങാത്ത ചോദ്യങ്ങൾ
             </div>
           </div>
@@ -248,12 +283,12 @@ export default function PracticeMenu({ allQuestions, onSelectTopic, onStartCusto
 
       {/* Topic Selection Grid with Individual Progress Bars */}
       <div className="space-y-4">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <Layers className="w-5 h-5 text-sky-600" />
+        <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <Layers className="w-5 h-5 text-sky-600 shrink-0" />
           <span>വിഷയാടിസ്ഥാനത്തിൽ തിരഞ്ഞെടുക്കുക (Select Topic)</span>
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
           {topics.map((t) => {
             const topicQuestions = t.id === 'ALL' 
               ? allQuestions 
@@ -268,7 +303,7 @@ export default function PracticeMenu({ allQuestions, onSelectTopic, onStartCusto
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold text-white bg-gradient-to-r ${t.color}`}>
+                    <span className={`px-2.5 py-0.5 rounded-lg text-[11px] sm:text-xs font-bold text-white bg-gradient-to-r ${t.color}`}>
                       {topicStat.total} ചോദ്യങ്ങൾ
                     </span>
                     <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
