@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { playTick, playUrgentBeep, playSelectSound, playConfirmSound } from '../utils/audio';
 import { saveQuestionAttempt, getStudyProgress } from '../utils/studyProgress';
+import { getQuestionExplanation } from '../utils/explanationHelper';
 
 export default function ExamView({
   questions,
@@ -218,7 +219,7 @@ export default function ExamView({
 
         {/* Live Counters, Progress & Timer */}
         <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end flex-wrap sm:flex-nowrap">
-          {/* Live Correct Answers Counter (Requested Feature) */}
+          {/* Live Correct Answers Counter */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 shadow-xs">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <div>
@@ -405,26 +406,48 @@ export default function ExamView({
           })}
         </div>
 
-        {/* Practice Mode Feedback Banner with Mastery Status */}
+        {/* Practice Mode Feedback Banner & 💡 വിശദീകരണം Description Box */}
         {isPracticeMode && hasSubmittedPractice && (
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 animate-fadeIn">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                ശരിയായ ഉത്തരം (Correct Answer):
-              </span>
+          <div className="space-y-3 animate-fadeIn pt-1">
+            {/* Status & Correct Answer Card */}
+            <div className={`p-3.5 sm:p-4 rounded-2xl border flex items-center justify-between gap-3 ${
+              selectedOption === currentQuestion.answer
+                ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200'
+                : 'bg-rose-50/70 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200'
+            }`}>
+              <div className="min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-wider opacity-80">
+                  {selectedOption === currentQuestion.answer ? "ശരിയുത്തരം (Correct Answer):" : "ശരിയായ ഉത്തരം (Correct Answer):"}
+                </div>
+                <div className="text-sm sm:text-base font-bold mt-0.5 break-words">
+                  {currentQuestion.answer_text || `Option ${currentQuestion.answer}`}
+                </div>
+              </div>
               {masteryBadge && (
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold flex items-center gap-1 ${
+                <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shrink-0 ${
                   masteryBadge.color === 'emerald'
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                    : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700'
+                    : 'bg-rose-100 text-rose-800 dark:bg-rose-900/80 dark:text-rose-200 border border-rose-300 dark:border-rose-700'
                 }`}>
-                  <masteryBadge.icon className="w-3.5 h-3.5" />
+                  <masteryBadge.icon className="w-3.5 h-3.5 shrink-0" />
                   <span>{masteryBadge.text}</span>
                 </span>
               )}
             </div>
-            <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
-              {currentQuestion.answer_text || `Option ${currentQuestion.answer}`}
+
+            {/* The 💡 വിശദീകരണം (Explanation Box) matching the exact requested layout */}
+            <div className="p-3.5 sm:p-4 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border-l-4 border-sky-500 text-xs sm:text-sm text-slate-800 dark:text-blue-100 leading-relaxed shadow-xs">
+              <div className="flex items-start gap-2.5">
+                <span className="text-base select-none shrink-0 mt-0.5">💡</span>
+                <div className="space-y-1 min-w-0">
+                  <strong className="font-bold text-sky-800 dark:text-sky-300">
+                    വിശദീകരണം:
+                  </strong>{' '}
+                  <span className="text-slate-700 dark:text-slate-200">
+                    {getQuestionExplanation(currentQuestion)}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         )}

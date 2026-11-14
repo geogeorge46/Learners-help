@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { playPassFanfare, playFailTone } from '../utils/audio';
+import { getQuestionExplanation } from '../utils/explanationHelper';
 
 export default function ResultView({
   answersLog,
@@ -154,7 +155,7 @@ export default function ResultView({
               <span>ഉത്തരങ്ങളുടെ സമഗ്ര അവലോകനം (Question Review)</span>
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              ഓരോ ചോദ്യത്തിനും നൽകിയ ഉത്തരവും യഥാർത്ഥ ഉത്തരവും പരിശോധിക്കാം.
+              ഓരോ ചോദ്യത്തിനും നൽകിയ ഉത്തരവും യഥാർത്ഥ ഉത്തരവും വിശദീകരണവും പരിശോധിക്കാം.
             </p>
           </div>
 
@@ -277,6 +278,21 @@ export default function ResultView({
                     ) : (
                       <span>{q.answer_text}</span>
                     )}
+                  </div>
+                </div>
+
+                {/* 💡 വിശദീകരണം (Explanation Box) in Question Review */}
+                <div className="mt-3 p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border-l-4 border-sky-500 text-xs sm:text-sm text-slate-800 dark:text-blue-100 leading-relaxed">
+                  <div className="flex items-start gap-2">
+                    <span className="text-sm select-none shrink-0 mt-0.5">💡</span>
+                    <div className="space-y-0.5">
+                      <strong className="font-bold text-sky-800 dark:text-sky-300">
+                        വിശദീകരണം:
+                      </strong>{' '}
+                      <span className="text-slate-700 dark:text-slate-200">
+                        {getQuestionExplanation(q)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
